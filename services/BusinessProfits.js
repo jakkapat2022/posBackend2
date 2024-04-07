@@ -1,4 +1,4 @@
-const { bills , ProductStockBills } = require('../models/index.js');
+const { bills , ProductStockBills , bills_product } = require('../models/index.js');
 const { Op } = require('sequelize')
 
 const getTotalBusiness = {
@@ -83,18 +83,46 @@ const getTotalBusiness = {
         } catch (error) {
             reject(error)
         }
+    }),
+
+    lasttestBill: ({start,end}) => new Promise (async(resolve,reject) => {
+        try {
+            const result = []
+            if(start && end){
+
+            }else{
+                result[0] = await bills.findAndCountAll({
+                    order: [['createdAt', 'DESC']],
+                    limit: 5
+                });
+            }
+
+            resolve(result)
+        } catch (error) {
+            reject(error)
+        }
     })
 
 
 }
 
 const getTotalBySelected ={
-    income:({start,end}) => new Promise(async(resolve,reject) => {
+    income:({start,end,type}) => new Promise(async(resolve,reject) => {
         try {
+            const result = []
             const objResult = {}
             const keyU = []
             const resultKey = []
-            const result = []
+
+            if(type == 'day'){
+                type = null
+            }
+
+            // if(type){
+            //     start = null
+            //     end = null
+            // }
+
 
             if(start && end){
 
@@ -109,28 +137,46 @@ const getTotalBySelected ={
                     },
                     order: [['createdAt', 'ASC']]
                 })
-            }else{
-                // เลือกวันย้อนหลัง 30 วัน
-                const cuurentData = new Date(Date.now())
-                const thirtyDaysAgo = new Date()
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-                //console.log("now",cuurentData)
-                //console.log(thirtyDaysAgo)
+            }else if(type){
                 result[0] = await bills.findAndCountAll({
-                    where:{
-                        createdAt:{
-                            [Op.between]: [thirtyDaysAgo,cuurentData] // กำหนดให้วันที่ต้องมากกว่าหรือเท่ากับ thirtyDaysAgo
-                        }
-                    },
                     order: [['createdAt', 'ASC']]
                 })
+            }else{
+                 // เลือกวันย้อนหลัง 30 วัน
+                 const cuurentData = new Date(Date.now())
+                 const thirtyDaysAgo = new Date()
+                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30) //ย้อนหลัง30 วัน
+ 
+                 //console.log("now",cuurentData)
+                 //console.log(thirtyDaysAgo)
+                 result[0] = await bills.findAndCountAll({
+                     where:{
+                         createdAt:{
+                             [Op.between]: [thirtyDaysAgo,cuurentData] // กำหนดให้วันที่ต้องมากกว่าหรือเท่ากับ thirtyDaysAgo
+                         }
+                     },
+                     order: [['createdAt', 'ASC']]
+                 })
             }
             
 
             for(let i = 0; i < result[0].count; i++){
                 let date = new Date(result[0].rows[i].createdAt)
-                keyU.push(`${date.getFullYear(2)}/${date.getMonth() + 1}/${date.getDate()}`)
+                let key;
+                // Determine the key based on the switch case
+                switch (type) {
+                    case 'year':
+                        key = `${date.getFullYear(2)}`;
+                        break;
+                    case 'month':
+                        key = `${date.getFullYear(2)}/${date.getMonth() + 1}`;
+                        break;
+                    default:
+                        key = `${date.getFullYear(2)}/${date.getMonth() + 1}/${date.getDate()}`;
+                        break;
+                }
+
+                keyU.push(key)
 
             }
 
@@ -151,8 +197,22 @@ const getTotalBySelected ={
 
             for(let i = 0; i < result[0].count; i++){
                 let date = new Date(result[0].rows[i].createdAt)
+                let key;
+                // Determine the key based on the switch case
+                switch (type) {
+                    case 'year':
+                        key = `${date.getFullYear(2)}`;
+                        break;
+                    case 'month':
+                        key = `${date.getFullYear(2)}/${date.getMonth() + 1}`;
+                        break;
+                    default:
+                        key = `${date.getFullYear(2)}/${date.getMonth() + 1}/${date.getDate()}`;
+                        break;
+                }
+
                 for(let j = 0;j < resultKey.length; j++){
-                    if(`${date.getFullYear(2)}/${date.getMonth() + 1}/${date.getDate()}` == resultKey[j]){
+                    if(key == resultKey[j]){
                         const bill = {
                             total: result[0].rows[i].total
                         }
@@ -168,4 +228,102 @@ const getTotalBySelected ={
     })
 }
 
-module.exports = { getTotalBusiness ,getTotalBySelected }
+const getTotalProductCount = {
+    getCount:({start,end,type}) => new Promise(async(resolve,reject) => {
+        try {
+            const result = []
+            const objResult = {}
+            const keyU = []
+            const resultKey = []
+
+            if(type == 'day'){
+                type = null
+            }
+
+            // if(type){
+            //     start = null
+            //     end = null
+            // }
+
+
+            if(start && end){
+
+                const newEndDate = new Date(end)
+                newEndDate.setDate(newEndDate.getDate() + 1)
+                
+                result[0] = await bills_product.findAndCountAll({
+                    where:{
+                        createdAt:{
+                            [Op.between]:[start,newEndDate]
+                        }
+                    },
+                    order: [['name', 'ASC']]
+                })
+            }else if(type){
+                result[0] = await bills_product.findAndCountAll({
+                    order: [['name', 'ASC']]
+                })
+            }else{
+                 // เลือกวันย้อนหลัง 30 วัน
+                 const cuurentData = new Date(Date.now())
+                 const thirtyDaysAgo = new Date()
+                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30) //ย้อนหลัง30 วัน
+ 
+                 //console.log("now",cuurentData)
+                 //console.log(thirtyDaysAgo)
+                 result[0] = await bills_product.findAndCountAll({
+                     where:{
+                         createdAt:{
+                             [Op.between]: [thirtyDaysAgo,cuurentData] // กำหนดให้วันที่ต้องมากกว่าหรือเท่ากับ thirtyDaysAgo
+                         }
+                     },
+                     order: [['name', 'ASC']]
+                 })
+            }
+
+            for(let i = 0; i < result[0].count; i++){
+                keyU.push(result[0].rows[i].name)
+            }
+
+            function removeDuplicates(arr) {
+                return arr.filter((item,
+                index) => arr.indexOf(item) === index);
+            }
+            
+            resultKey.push(...removeDuplicates(keyU))
+
+            for(let i = 0; i < resultKey.length; i++){
+                objResult[resultKey[i]] = []
+            }
+
+            for(let i = 0; i < result[0].count; i++){
+
+                for(let j = 0; j < resultKey.length; j++){
+
+                    if(result[0].rows[i].name == resultKey[j]){
+                        objResult[resultKey[j]].push(result[0].rows[i].value)
+                    }
+                }
+            }
+
+            //for(let i = 0; i < )
+            let totalSum = {}
+
+            for (const key in objResult) {
+            if (Object.hasOwnProperty.call(objResult, key)) {
+                const sum = objResult[key].reduce((acc, curr) => acc + curr, 0);
+               // const value = {}
+                totalSum[key] = {
+                    value: sum
+                };
+            }
+            }
+            
+            resolve(totalSum)
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+module.exports = { getTotalBusiness ,getTotalBySelected , getTotalProductCount}

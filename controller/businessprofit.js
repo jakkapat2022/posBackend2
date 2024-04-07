@@ -1,4 +1,4 @@
-const { getTotalBusiness , getTotalBySelected } = require('../services/BusinessProfits.js')
+const { getTotalBusiness , getTotalBySelected , getTotalProductCount } = require('../services/BusinessProfits.js')
 
 const GetTotalBusiness = async(req,res) =>{
     const { start ,end} = req.body;
@@ -25,10 +25,10 @@ const GetTotalBusiness = async(req,res) =>{
 }
 
 const GetTotalBySelected = async (req,res) => {
-    const { start ,end} = req.body;
+    const { start ,end ,type} = req.body;
     try {
         const results = await getTotalBySelected.income({
-            start,end
+            start,end,type
         });
         return res.status(200).json(results)
     } catch (error) {
@@ -36,4 +36,27 @@ const GetTotalBySelected = async (req,res) => {
     }
 }
 
-module.exports = { GetTotalBusiness , GetTotalBySelected}
+const GetLasttestBill = async (req,res) => {
+    try {
+        const results = await getTotalBusiness.lasttestBill({})
+
+        return res.status(200).json(results)
+    } catch (error) {
+        return res.status(500).json({success: false , error:error?.message})
+    }
+}
+
+const GetProductCount = async (req,res) => {
+    const { start ,end ,type} = req.body;
+    try {
+        const results = await getTotalProductCount.getCount({
+            start,end,type
+        })
+
+        return res.status(200).json(results)
+    } catch (error) {
+        return res.status(500).json({success: false , error:error?.message})
+    }
+}
+
+module.exports = { GetTotalBusiness , GetTotalBySelected , GetLasttestBill , GetProductCount}

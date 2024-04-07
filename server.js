@@ -13,7 +13,7 @@ const { user_login ,user_get , user_logout , user_register ,adminLogin } = requi
 const {CheckStockProduct, get, get_product ,getId_product , create_product , update_product , delete_product ,post, get_cateogrys , post_cateogry , post_point ,check_point , getProductPoint} = require('./controller/product.js');
 const { postBills , postBills_product , getBills_product , deleteBill_product ,getAll , updateStatusBill} = require('./controller/salesSystem.js')
 const { createAdjustment , GetChild , getAdjustment } = require('./controller/stockAdjustment.js');
-const { GetTotalBusiness ,GetTotalBySelected } = require('./controller/businessprofit.js')
+const { GetTotalBusiness ,GetTotalBySelected , GetLasttestBill , GetProductCount } = require('./controller/businessprofit.js')
 
 require('./connect.js');
 const db = require('./models/index.js');
@@ -89,5 +89,7 @@ app.get("/stock/adjust/get",getAdjustment);
 //dashbroad
 app.post("/businessprofits/getIncome", GetTotalBusiness);
 app.post("/businessprofits/getIncomeSelected", GetTotalBySelected);
+app.post("/businessprofits/getlasttestbill", GetLasttestBill);
+app.post("/businessprofits/getproductcount", GetProductCount);
 
 app.listen(port, () => console.log("server is running on", port));
